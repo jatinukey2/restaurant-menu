@@ -334,15 +334,22 @@ function ManageMenuContent() {
                     </option>
                   ))}
                 </select>
-              </div>
-
-              {/* Image Upload Area */}
+                      {/* Image Upload Area */}
               <div>
                 <label className="block text-[11px] font-bold uppercase tracking-wider text-stone-500 mb-1">
                   Dish Image
                 </label>
                 
-                <div className="relative border-2 border-dashed border-stone-200 hover:border-amber-500/50 rounded-xl p-4 transition-colors bg-stone-50/50 flex flex-col items-center justify-center text-center">
+                <div className="relative border-2 border-dashed border-stone-200 hover:border-amber-500/50 rounded-xl p-4 transition-colors bg-stone-50/50 flex flex-col items-center justify-center text-center min-h-[144px]">
+                  {/* Invisible file input covering the entire dashed box */}
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageChange}
+                    disabled={uploading}
+                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                  />
+
                   {image ? (
                     <div className="relative w-full h-32 rounded-lg overflow-hidden group">
                       <Image
@@ -352,43 +359,50 @@ function ManageMenuContent() {
                         className="object-cover"
                         sizes="(max-width: 768px) 100vw, 33vw"
                       />
-                      <div className="absolute inset-0 bg-stone-905/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button
-                          type="button"
-                          onClick={() => setImage('')}
-                          className="px-3 py-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-xs font-semibold transition-colors"
-                        >
-                          Remove Image
-                        </button>
+                      
+                      {/* Hover Overlay indicating click to replace */}
+                      <div className="absolute inset-0 bg-stone-900/40 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center">
+                        <span className="text-[10px] text-white font-bold bg-stone-900/60 px-2.5 py-1 rounded-md backdrop-blur-xs">
+                          Click to Replace
+                        </span>
                       </div>
+                      
+                      {/* Remove Image Button (z-20 to sit above the hidden input file) */}
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          e.preventDefault();
+                          setImage('');
+                        }}
+                        className="absolute top-2 right-2 z-20 p-1 bg-stone-900/80 hover:bg-stone-900 text-white rounded-md transition-colors cursor-pointer"
+                        title="Remove Image"
+                      >
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
                     </div>
                   ) : (
                     <div className="py-2">
                       <svg className="mx-auto h-8 w-8 text-stone-400 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                       </svg>
-                      <label className="cursor-pointer text-xs font-semibold text-amber-700 hover:text-amber-850">
-                        <span>Upload an image file</span>
-                        <input
-                          type="file"
-                          accept="image/*"
-                          onChange={handleImageChange}
-                          disabled={uploading}
-                          className="hidden"
-                        />
-                      </label>
+                      <span className="text-xs font-semibold text-amber-750 block">
+                        Click to upload an image
+                      </span>
                       <p className="text-[10px] text-stone-400 mt-1">PNG, JPG, GIF up to 5MB</p>
                     </div>
                   )}
 
                   {uploading && (
-                    <div className="absolute inset-0 bg-white/95 flex flex-col items-center justify-center rounded-xl">
+                    <div className="absolute inset-0 bg-white/95 flex flex-col items-center justify-center rounded-xl z-30">
                       <div className="w-7 h-7 border-2 border-t-amber-600 border-r-transparent border-stone-200 rounded-full animate-spin mb-2" />
                       <span className="text-xs text-amber-850 font-semibold">{uploadProgress}</span>
                     </div>
                   )}
                 </div>
-              </div>
+              </div>        </div>
 
               {/* Spicy level */}
               <div>
