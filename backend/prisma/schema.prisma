@@ -7,16 +7,29 @@ generator client {
   provider = "prisma-client-js"
 }
 
+enum Category {
+  STARTER
+  MAIN_COURSE
+  DESSERT
+  BEVERAGE
+  SIDE
+}
+
 model MenuItem {
-  id          String   @id @default(uuid())
-  name        String
-  description String?
-  price       Float
-  image       String?
-  category    String
-  available   Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id           String   @id @default(uuid())
+  name         String
+  description  String?
+  price        Float
+  image        String?
+  category     Category
+  available    Boolean  @default(true)
+  isVegetarian Boolean  @default(false)
+  isVegan      Boolean  @default(false)
+  isGlutenFree Boolean  @default(false)
+  spicyLevel   Int      @default(0)
+  prepTime     Int?     // Prep time in minutes
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
   @@map("menu_items")
 }
