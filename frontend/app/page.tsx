@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { MenuItem, Category } from '../types/menu';
-import { getMenuItems } from '../services/api';
+import { getMenuItems, deleteMenuItem } from '../services/api';
 
 const CATEGORIES: { value: Category; label: string }[] = [
   { value: 'STARTER', label: 'Starters' },
@@ -21,6 +21,9 @@ export default function Home() {
   const [filterCategory, setFilterCategory] = useState<Category | 'ALL'>('ALL');
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  
+  // Track active actions dropdown
+  const [activeDropdownId, setActiveDropdownId] = useState<string | null>(null);
 
   // Fetch all items on mount/filter category change
   useEffect(() => {
@@ -36,9 +39,21 @@ export default function Home() {
       setError(null);
     } catch (err: any) {
       console.error(err);
-      setError('Could not connect to the backend database. Please check if the server is active.');
+      setError('Could not connect to the database. Please check if the server is active.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!window.confirm('Are you sure you want to delete this menu item?')) return;
+    try {
+      await deleteMenuItem(id);
+      setActiveDropdownId(null);
+      fetchItems();
+    } catch (err: any) {
+      console.error(err);
+      alert('Failed to delete menu item');
     }
   };
 
@@ -53,33 +68,28 @@ export default function Home() {
   });
 
   return (
-    <div className="min-h-screen bg-stone-50 text-stone-850 font-sans pb-20">
-      {/* Visual background accents */}
+    <div className="min-h-screen bg-stone-50 text-stone-800 font-sans pb-20">
+      {/* Background accents */}
       <div className="absolute top-0 left-0 w-full h-[450px] bg-gradient-to-b from-amber-100/40 via-stone-50/20 to-transparent pointer-events-none" />
       <div className="absolute top-1/3 right-0 w-80 h-80 bg-amber-50 rounded-full blur-[100px] pointer-events-none" />
 
       {/* Header */}
       <header className="relative max-w-7xl mx-auto px-6 pt-12 pb-8 border-b border-stone-200/80 flex flex-col md:flex-row justify-between items-center gap-6">
         <div className="text-center md:text-left">
-          <span className="text-xs uppercase font-extrabold tracking-widest text-amber-700">Gourmet Selection</span>
-          <h1 className="text-4xl md:text-5xl font-serif font-extrabold text-stone-900 tracking-tight mt-1">
+          <h1 className="text-4xl md:text-5xl font-serif font-extrabold text-stone-900 tracking-tight">
             Bistro Royale
           </h1>
-          <p className="text-stone-500 text-sm mt-1 max-w-md">Experience culinary excellence crafted by our master chefs with freshly sourced local ingredients.</p>
+          <p className="text-stone-500 text-sm mt-1 max-w-md">Experience gourmet dishes crafted with freshly sourced local ingredients.</p>
         </div>
         
         <div className="flex items-center gap-4">
           <Link 
             href="/manage"
-            className="inline-flex items-center gap-2 px-5 py-2.5 bg-stone-900 hover:bg-stone-800 text-white rounded-xl text-sm font-semibold shadow-md active:translate-y-0.5 transition-all cursor-pointer"
+            className="inline-flex items-center gap-2 px-5 py-2.5 bg-stone-900 hover:bg-stone-800 text-white rounded-xl text-sm font-semibold shadow-xs active:translate-y-0.5 transition-all cursor-pointer"
           >
-            <span>Manage Menu</span>
-            <span>👨‍🍳</span>
+            <span>Add Menu</span>
+            <span>➕</span>
           </Link>
-          <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-250">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse mr-2" />
-            Kitchen Active
-          </span>
         </div>
       </header>
 
@@ -125,7 +135,7 @@ export default function Home() {
               placeholder="Search dishes..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-white border border-stone-200 rounded-2xl pl-10 pr-4 py-2.5 text-sm text-stone-850 placeholder-stone-400 focus:outline-hidden focus:ring-2 focus:ring-amber-500/25 focus:border-amber-600 transition-all shadow-2xs"
+              className="w-full bg-white border border-stone-200 rounded-2xl pl-10 pr-4 py-2.5 text-sm text-stone-800 placeholder-stone-400 focus:outline-hidden focus:ring-2 focus:ring-amber-500/25 focus:border-amber-600 transition-all shadow-2xs"
             />
           </div>
         </section>
@@ -137,7 +147,7 @@ export default function Home() {
             <span className="text-stone-400 text-sm font-semibold">Preparing Bistro menu...</span>
           </div>
         ) : error ? (
-          <div className="flex flex-col items-center justify-center p-12 bg-rose-50/50 border border-rose-200 rounded-3xl text-center">
+          <div className="flex flex-col items-center justify-center p-12 bg-rose-55/50 border border-rose-200 rounded-3xl text-center">
             <span className="text-3xl mb-3">📡</span>
             <h3 className="text-lg font-bold text-rose-800">Connection Offline</h3>
             <p className="text-stone-500 text-sm mt-1.5 max-w-sm">{error}</p>
@@ -184,9 +194,9 @@ export default function Home() {
                         priority={false}
                       />
                     ) : (
-                      <div className="absolute inset-0 flex flex-col items-center justify-center text-stone-450 bg-stone-50">
+                      <div className="absolute inset-0 flex flex-col items-center justify-center text-stone-400 bg-stone-50">
                         <span className="text-3xl mb-1">🍴</span>
-                        <span className="text-[10px] uppercase font-extrabold tracking-wider text-stone-400">Bistro Royale Special</span>
+                        <span className="text-[10px] uppercase font-extrabold tracking-wider">Bistro Royale</span>
                       </div>
                     )}
 
@@ -194,6 +204,47 @@ export default function Home() {
                     <span className="absolute top-4 left-4 bg-white/90 backdrop-blur-xs text-amber-800 text-[10px] font-extrabold uppercase tracking-wider px-2.5 py-1 rounded-lg border border-amber-600/10 shadow-2xs">
                       {CATEGORIES.find((c) => c.value === item.category)?.label || item.category}
                     </span>
+
+                    {/* Three Dots Actions Menu */}
+                    <div className="absolute top-4 right-4 z-10">
+                      <button
+                        onClick={() => setActiveDropdownId(activeDropdownId === item.id ? null : item.id)}
+                        className="w-8 h-8 flex items-center justify-center bg-white/90 hover:bg-white text-stone-700 rounded-full border border-stone-200/50 shadow-2xs transition-colors cursor-pointer"
+                      >
+                        <svg className="w-4 h-4 text-stone-600" fill="currentColor" viewBox="0 0 24 24">
+                          <path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z" />
+                        </svg>
+                      </button>
+
+                      {activeDropdownId === item.id && (
+                        <>
+                          <div 
+                            className="fixed inset-0 z-10" 
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setActiveDropdownId(null);
+                            }}
+                          />
+                          <div className="absolute right-0 mt-1 bg-white border border-stone-200 rounded-xl shadow-lg py-1.5 w-32 z-20 text-xs font-bold">
+                            <Link
+                              href={`/manage?edit=${item.id}`}
+                              className="block px-4 py-2 text-stone-700 hover:bg-stone-50 transition-colors"
+                            >
+                              Edit Dish
+                            </Link>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDelete(item.id);
+                              }}
+                              className="w-full text-left block px-4 py-2 text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
+                            >
+                              Delete Dish
+                            </button>
+                          </div>
+                        </>
+                      )}
+                    </div>
 
                     {/* Availability Overlay */}
                     {!item.available && (
@@ -211,46 +262,17 @@ export default function Home() {
                       <h3 className="font-bold text-stone-900 text-lg group-hover:text-amber-700 transition-colors leading-tight">
                         {item.name}
                       </h3>
-                      <span className="font-extrabold text-amber-700 text-lg whitespace-nowrap">
+                      <span className="font-extrabold text-amber-750 text-lg whitespace-nowrap">
                         ${item.price.toFixed(2)}
                       </span>
                     </div>
 
                     {item.description && (
-                      <p className="text-stone-550 text-xs leading-relaxed line-clamp-3">
+                      <p className="text-stone-500 text-xs leading-relaxed line-clamp-3">
                         {item.description}
                       </p>
                     )}
                   </div>
-                </div>
-
-                {/* Footer Badges & Metadata */}
-                <div className="px-6 pb-6 pt-2 flex flex-wrap gap-2 items-center">
-                  {item.prepTime && (
-                    <span className="inline-flex items-center text-[10px] font-bold text-stone-500 bg-stone-100 px-2.5 py-1 rounded-lg border border-stone-200/50">
-                      ⏱️ {item.prepTime} min
-                    </span>
-                  )}
-                  {item.spicyLevel > 0 && (
-                    <span className="inline-flex items-center text-[10px] font-bold text-amber-700 bg-amber-50 px-2.5 py-1 rounded-lg border border-amber-200/50">
-                      {'🌶️'.repeat(item.spicyLevel)}
-                    </span>
-                  )}
-                  {item.isVegetarian && (
-                    <span className="inline-flex items-center text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-250/50">
-                      🌿 Veg
-                    </span>
-                  )}
-                  {item.isVegan && (
-                    <span className="inline-flex items-center text-[10px] font-bold text-teal-700 bg-teal-50 px-2.5 py-1 rounded-lg border border-teal-250/50">
-                      🥬 Vegan
-                    </span>
-                  )}
-                  {item.isGlutenFree && (
-                    <span className="inline-flex items-center text-[10px] font-bold text-sky-700 bg-sky-50 px-2.5 py-1 rounded-lg border border-sky-200/50">
-                      🌾 Gluten Free
-                    </span>
-                  )}
                 </div>
               </div>
             ))}

@@ -1,8 +1,9 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { MenuItem, Category, CreateMenuItemInput } from '../../types/menu';
 import {
   getMenuItems,
@@ -20,7 +21,11 @@ const CATEGORIES: { value: Category; label: string }[] = [
   { value: 'SIDE', label: 'Sides' }
 ];
 
-export default function ManageMenu() {
+function ManageMenuContent() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const editId = searchParams.get('edit');
+
   // State variables
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [filterCategory, setFilterCategory] = useState<Category | 'ALL'>('ALL');
@@ -68,6 +73,27 @@ export default function ManageMenu() {
     }
   };
 
+  // Pre-populate form if 'edit' query parameter is present in URL
+  useEffect(() => {
+    if (editId && menuItems.length > 0) {
+      const itemToEdit = menuItems.find(item => item.id === editId);
+      if (itemToEdit) {
+        setEditingId(itemToEdit.id);
+        setName(itemToEdit.name);
+        setDescription(itemToEdit.description || '');
+        setPrice(itemToEdit.price.toString());
+        setCategory(itemToEdit.category);
+        setImage(itemToEdit.image || '');
+        setAvailable(itemToEdit.available);
+        setIsVegetarian(itemToEdit.isVegetarian);
+        setIsVegan(itemToEdit.isVegan);
+        setIsGlutenFree(itemToEdit.isGlutenFree);
+        setSpicyLevel(itemToEdit.spicyLevel);
+        setPrepTime(itemToEdit.prepTime ? itemToEdit.prepTime.toString() : '');
+      }
+    }
+  }, [editId, menuItems]);
+
   // Toast helper
   const showNotification = (type: 'success' | 'error', message: string) => {
     setNotification({ type, message });
@@ -110,25 +136,12 @@ export default function ManageMenu() {
     setIsGlutenFree(false);
     setSpicyLevel(0);
     setPrepTime('');
+    router.push('/manage'); // clear edit query parameter from URL
   };
 
   // Set form fields for editing
   const handleEditClick = (item: MenuItem) => {
-    setEditingId(item.id);
-    setName(item.name);
-    setDescription(item.description || '');
-    setPrice(item.price.toString());
-    setCategory(item.category);
-    setImage(item.image || '');
-    setAvailable(item.available);
-    setIsVegetarian(item.isVegetarian);
-    setIsVegan(item.isVegan);
-    setIsGlutenFree(item.isGlutenFree);
-    setSpicyLevel(item.spicyLevel);
-    setPrepTime(item.prepTime ? item.prepTime.toString() : '');
-    
-    // Scroll form into view on mobile
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    router.push(`/manage?edit=${item.id}`);
   };
 
   // Handle create/update submission
@@ -185,7 +198,7 @@ export default function ManageMenu() {
   };
 
   return (
-    <div className="min-h-screen bg-stone-50 text-stone-800 font-sans pb-16">
+    <div className="min-h-screen bg-stone-50 text-stone-850 font-sans pb-16">
       {/* Background patterns */}
       <div className="absolute top-0 left-0 w-full h-[300px] bg-gradient-to-b from-amber-100/40 via-stone-50/20 to-transparent pointer-events-none" />
 
@@ -259,7 +272,7 @@ export default function ManageMenu() {
                   placeholder="e.g. Honey Glazed Salmon"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-2 text-stone-800 focus:outline-hidden focus:ring-2 focus:ring-amber-500/20 focus:border-amber-600 transition-all text-sm"
+                  className="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-2 text-stone-850 focus:outline-hidden focus:ring-2 focus:ring-amber-500/20 focus:border-amber-600 transition-all text-sm"
                 />
               </div>
 
@@ -277,7 +290,7 @@ export default function ManageMenu() {
                     placeholder="19.99"
                     value={price}
                     onChange={(e) => setPrice(e.target.value)}
-                    className="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-2 text-stone-800 focus:outline-hidden focus:ring-2 focus:ring-amber-500/20 focus:border-amber-600 transition-all text-sm"
+                    className="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-2 text-stone-850 focus:outline-hidden focus:ring-2 focus:ring-amber-500/20 focus:border-amber-600 transition-all text-sm"
                   />
                 </div>
                 <div>
@@ -290,7 +303,7 @@ export default function ManageMenu() {
                     placeholder="e.g. 20"
                     value={prepTime}
                     onChange={(e) => setPrepTime(e.target.value)}
-                    className="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-2 text-stone-800 focus:outline-hidden focus:ring-2 focus:ring-amber-500/20 focus:border-amber-600 transition-all text-sm"
+                    className="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-2 text-stone-850 focus:outline-hidden focus:ring-2 focus:ring-amber-500/20 focus:border-amber-600 transition-all text-sm"
                   />
                 </div>
               </div>
@@ -305,7 +318,7 @@ export default function ManageMenu() {
                   placeholder="Describe the dish ingredients, allergens, or culinary style..."
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  className="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-2 text-stone-800 focus:outline-hidden focus:ring-2 focus:ring-amber-500/20 focus:border-amber-600 transition-all text-sm resize-none"
+                  className="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-2 text-stone-850 focus:outline-hidden focus:ring-2 focus:ring-amber-500/20 focus:border-amber-600 transition-all text-sm resize-none"
                 />
               </div>
 
@@ -317,7 +330,7 @@ export default function ManageMenu() {
                 <select
                   value={category}
                   onChange={(e) => setCategory(e.target.value as Category)}
-                  className="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-2 text-stone-800 focus:outline-hidden focus:ring-2 focus:ring-amber-500/20 focus:border-amber-600 transition-all text-sm"
+                  className="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-2 text-stone-855 focus:outline-hidden focus:ring-2 focus:ring-amber-500/20 focus:border-amber-600 transition-all text-sm animate-none"
                 >
                   {CATEGORIES.map((cat) => (
                     <option key={cat.value} value={cat.value} className="bg-white">
@@ -499,7 +512,7 @@ export default function ManageMenu() {
               <span className="text-stone-400 text-xs font-semibold">Loading menu items...</span>
             </div>
           ) : error ? (
-            <div className="flex flex-col items-center justify-center p-8 bg-rose-50 border border-rose-200 rounded-2xl text-center">
+            <div className="flex flex-col items-center justify-center p-8 bg-rose-55 border border-rose-200 rounded-2xl text-center">
               <svg className="w-10 h-10 text-rose-500 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
               </svg>
@@ -601,5 +614,17 @@ export default function ManageMenu() {
         </section>
       </main>
     </div>
+  );
+}
+
+export default function ManageMenu() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-stone-50 flex items-center justify-center">
+        <div className="w-8 h-8 border-3 border-t-amber-600 border-stone-200 rounded-full animate-spin" />
+      </div>
+    }>
+      <ManageMenuContent />
+    </Suspense>
   );
 }
