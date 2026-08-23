@@ -1,6 +1,7 @@
 import express, { Application } from 'express';
 import cors from 'cors';
 import menuRoutes from './routes/menuRoutes';
+import uploadRoutes from './routes/upload';
 import { errorHandler } from './middleware/error';
 
 const app: Application = express();
@@ -11,6 +12,7 @@ app.use(express.json());
 
 // Routes
 app.use('/api/menu', menuRoutes);
+app.use('/api/upload', uploadRoutes);
 
 // Base Health Check
 app.get('/health', (req, res) => {
