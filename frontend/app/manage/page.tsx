@@ -220,10 +220,6 @@ function ManageMenuContent() {
           >
             ← View Customer Menu
           </Link>
-          <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-250">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-2" />
-            Connected
-          </span>
         </div>
       </header>
 
