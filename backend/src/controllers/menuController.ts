@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import prisma from '../config/database';
 import { Category } from '@prisma/client';
+import { deleteImageByUrl } from '../services/imageService';
 
 export const getMenuItems = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
@@ -110,6 +111,20 @@ export const updateMenuItem = async (req: Request, res: Response, next: NextFunc
       return;
     }
 
+    // Fetch existing item to check if the image has changed
+    const existingItem = await prisma.menuItem.findUnique({ where: { id } });
+    if (!existingItem) {
+      res.status(404).json({ success: false, message: 'Menu item not found' });
+      return;
+    }
+
+    // Delete the old image from Cloudinary if a new one is set, or if it is removed
+    if (image !== undefined && existingItem.image && existingItem.image !== image) {
+      await deleteImageByUrl(existingItem.image).catch((err) => {
+        console.error('Failed to delete old image from Cloudinary on update:', err);
+      });
+    }
+
     const updatedItem = await prisma.menuItem.update({
       where: { id },
       data: {
@@ -136,6 +151,15 @@ export const updateMenuItem = async (req: Request, res: Response, next: NextFunc
 export const deleteMenuItem = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const { id } = req.params;
+
+    // Fetch existing item to delete its associated image from Cloudinary
+    const existingItem = await prisma.menuItem.findUnique({ where: { id } });
+    if (existingItem && existingItem.image) {
+      await deleteImageByUrl(existingItem.image).catch((err) => {
+        console.error('Failed to delete image from Cloudinary on item deletion:', err);
+      });
+    }
+
     await prisma.menuItem.delete({ where: { id } });
     res.status(200).json({ success: true, message: 'Menu item deleted successfully' });
   } catch (error) {
